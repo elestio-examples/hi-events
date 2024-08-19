@@ -2,9 +2,14 @@
 set -o allexport; source .env; set +o allexport;
 
 KEY=$(openssl rand -base64 32)
-JWT_SECRET=$(openssl rand -base64 32)
 
 APP_KEY="base64:$KEY"
+
+length=32
+
+# Generate a random string
+JWT_SECRET=$(openssl rand -base64 $((length * 3/4 + 1)) | tr -d '+/' | cut -c1-$length)
+
 
 
 cat << EOT >> ./.env
@@ -30,3 +35,7 @@ cat <<EOT > ./servers.json
     }
 }
 EOT
+
+docker-compose up -d postgres
+
+sleep 30s;

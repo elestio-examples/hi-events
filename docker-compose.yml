@@ -1,0 +1,46 @@
+services:
+  all-in-one:
+    image: daveearley/hi.events-all-in-one:${SOFTWARE_VERSION_TAG}
+    restart: always
+    ports:
+      - "172.17.0.1:13336:80"
+    environment:
+      - VITE_FRONTEND_URL=https://${DOMAIN}
+      - VITE_API_URL_CLIENT=https://${DOMAIN}/api
+      - VITE_API_URL_SERVER=http://localhost:80/api
+      - VITE_STRIPE_PUBLISHABLE_KEY=${VITE_STRIPE_PUBLISHABLE_KEY}
+      - LOG_CHANNEL=stderr
+      - QUEUE_CONNECTION=sync
+      - MAIL_MAILER=array
+      - APP_KEY=${APP_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - FILESYSTEM_PUBLIC_DISK=public
+      - FILESYSTEM_PRIVATE_DISK=local
+      - APP_CDN_URL=https://${DOMAIN}/storage
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: elestio/postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - 172.17.0.1:43360:5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: elestio/pgadmin:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${ADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${ADMIN_PASSWORD}
+      PGADMIN_LISTEN_PORT: 8080
+    ports:
+      - "172.17.0.1:31829:8080"
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json
